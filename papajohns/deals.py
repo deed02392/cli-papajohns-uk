@@ -51,4 +51,60 @@ def get_products_from_deal(deal):
             if product_group_product['productSKU']['baseIngredientTypeId'] == base_ingredient['id'] and \
                     product_group_product['productSKU']['baseIngredientSizeId'] == size['id']:
                 product = product_group_product
+
+        # with the product, handle its 'instructions', if it has any
+        if 'instructionList' in product and product['instructionList']:
+            available_instructions = product['instructionList']
+            instructions = []
+            for instruction in available_instructions:
+                prompt_instruction = [{'type': 'list', 'name': 'id', 'message': instruction['name'],
+                                       'choices': [{
+                                           'name': x['name'],
+                                           'value': x['id']
+                                       } for x in instruction['instructions']]}]
+                response = prompt(questions=prompt_instruction)
+                instructions.append((instruction['id'], response['id']))
+            product['_instruction_responses'] = instructions
+            print(product['_instruction_responses'])
+
+        # ignore possible sauces, since it seems that papa johns only has a standard base sauce available for all pizzas
+
+        # process the possible toppings for the product
+        # TODO: enable selecting topping quantity with extended pyinquirer checkbox feature
+        if 'allowedToppings' in product and product['allowedToppings']:
+            prompt_toppings = [{'type': 'checkbox', 'name': 'id', 'message': 'Which toppings?',
+                                'choices': [{
+                                    'name': str(x['toppingId']),
+                                    'value': str(x['toppingId']),
+                                    'checked': x['toppingId'] in product['defaultToppings']
+                                } for x in product['allowedToppings']]}]
+            response = prompt(questions=prompt_toppings)
+            product['_toppings'] = response['id']
+            print(product['_toppings'])
+
+        # finally, let's see if there are any complimentary sides to choose from
+        if 'complimentarySides' in product and product['complimentarySides']:
+
+            available_sides = product['complimentarySides']
+            chosen_sides = []
+            for side in available_sides:
+                prompt_side = [
+                    {'type': 'list', 'name': 'id', 'message': f"Complimentary side {side['complimentarySideId']}",
+                     'default': side['defaultProduct']['sku'],
+                     'choices': [{
+                         'name': x['sku'],
+                         'value': x['sku'],
+                     } for x in side['productChoices']]}]
+                response = prompt(questions=prompt_side)
+                chosen_sides.append(response['id'])
+
+            product['_complimentary_sides'] = chosen_sides
+            print(product['_complimentary_sides'])
+
         products.append(product)
+
+    return products
+
+
+with open('feed_fam.json', 'r') as f:
+    products = get_products_from_deal(json.load(f)['data'])
