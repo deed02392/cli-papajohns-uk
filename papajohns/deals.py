@@ -9,19 +9,21 @@ from PyInquirer import Validator, ValidationError
 toppings = {}
 with open('toppings.json', 'r') as f:
     topping_data = json.load(f)['data']
-    toppings = { t["toppingId"]: t["title"] for t in topping_data }
-    toppings.update({ t["title"]: t["toppingId"] for t in topping_data })
+    toppings = {t["toppingId"]: t["title"] for t in topping_data}
+    toppings.update({t["title"]: t["toppingId"] for t in topping_data})
 
 dips = {}
 with open('products.json', 'r') as f:
     dips_data = json.load(f)['data']
-    dips = { d['productSKU']["sku"]: d['title'] for d in dips_data if d['name'] == 'Dips'}
+    dips = {d['productSKU']["sku"]: d['title'] for d in dips_data if d['name'] == 'Dips'}
+
 
 def get_topping_from_id(id):
     try:
         return toppings[id]
     except KeyError:
         ...
+
 
 def get_products_from_deal(deal):
     # check it can be delivered
