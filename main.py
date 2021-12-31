@@ -145,6 +145,13 @@ async def main():
     }])
     store_id = [x['storeId'] for x in delivery_stores if x['storeLocation']['address1'] == store_address['address1']][0]
 
+    availability = await api.get_store_availability(store_id)
+    if not availability['availableForDelivery']:
+        print(f"WARNING: Delivery not possible right now - these are the opening hours:")
+        opening_hours = await api.get_store_opening_hours(store_id)
+        for day in opening_hours:
+            print(f"{day['dayOfWeek']}: {day['storeOpenTime']} - {day['storeCloseTime']}")
+
     store_deals = await api.get_store_deals(store_id)
     store_deal = prompt(questions=[{
         'type': 'list',

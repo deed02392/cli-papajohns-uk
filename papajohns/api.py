@@ -4,6 +4,7 @@ import certifi
 import json
 import asyncio
 
+
 class Api:
     def __init__(self):
         self.addresses = None
@@ -24,14 +25,24 @@ class Api:
 
     async def get_delivery_stores(self, full_address):
         stores_results = await self.fetch(['v2', 'stores'], params={'searchType': 'ALL', 'locationType': 'HOME',
-                                                                    'street': full_address['address1'],
-                                                                    'city': full_address['city'],
+                                                                    # 'street': full_address['address1'],
+                                                                    # 'city': full_address['city'],
                                                                     'postalCode': full_address['postalCode']})
         return stores_results['data']['deliveryStores']
+
+    async def get_store_availability(self, store_id):
+        availability = await self.fetch(['v2', 'stores', store_id, 'availability'])
+        return availability['data']
+
+    async def get_store_opening_hours(self, store_id):
+        opening_hours = await self.fetch(['v2', 'stores', store_id])
+        return opening_hours['data']['storeHours']
 
     async def get_store_deals(self, store_id):
         r = await self.fetch(['v2', 'stores', store_id, 'deals', 'grouped'], params={'hideSteps': 'true'})
         return r['data']['deals']
+
+
 
     async def check_response(self, resp):
         if resp['data']:
